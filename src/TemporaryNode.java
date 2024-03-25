@@ -212,6 +212,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
                     String nodeAddress = entry.getValue();
 
+
+
                     try (Socket socket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
                          BufferedWriter nodeWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                          BufferedReader nodeReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
@@ -223,7 +225,9 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         if (nodeResponse.startsWith("VALUE")) {
                             StringBuilder nodeValueBuilder = new StringBuilder();
                             String[] parts = nodeResponse.split(" ");
+                            System.out.println("BEFORE");
                             int valueLines = Integer.parseInt(parts[1]);
+                            System.out.println("AFTER");
                             for (int i = 0; i < valueLines; i++) {
                                 nodeValueBuilder.append(nodeReader.readLine()).append('\n');
                             }
