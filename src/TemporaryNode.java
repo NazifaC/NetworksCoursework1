@@ -181,6 +181,71 @@ public class TemporaryNode implements TemporaryNodeInterface {
     }
 
 
+//    @Override
+//    public String get(String key) {
+//        try {
+//            int keyLines = key.split("\n").length;
+//            writer.write("GET? " + keyLines + "\n" + key);
+//            writer.flush();
+//
+//            String response = reader.readLine();
+//            System.out.println("Response: " + response);
+//
+//            if (response.startsWith("VALUE")) {
+//                StringBuilder valueBuilder = new StringBuilder();
+//                String[] parts = response.split(" ");
+//                int valueLines = Integer.parseInt(parts[1]);
+//                for (int i = 0; i < valueLines; i++) {
+//                    valueBuilder.append(reader.readLine()).append('\n');
+//                }
+//                return valueBuilder.toString();
+//            } else if (response.equals("NOPE")) {
+//                Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key)));
+//                //loop through map
+//                // try connect to each node
+//                // send GET
+//                for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
+//                    String nodeAddress = entry.getValue();
+//                    String nodeName = entry.getKey();
+//
+//                    try (Socket socket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
+//                         BufferedWriter nodeWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+//                         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+//                        //send start
+//
+//                        nodeWriter.write("START 1 " + nodeName + "\n");
+//                        nodeWriter.flush();
+//
+//                        String startResponse = nodeReader.readLine();
+//                        System.out.println("Start response: " + startResponse);
+//                        if (startResponse != null && startResponse.startsWith("START")) {
+//
+//                            nodeWriter.write("GET? " + keyLines + "\n" + key);
+//                            nodeWriter.flush();
+//
+//                            String nodeResponse = nodeReader.readLine();
+//                            if (nodeResponse.startsWith("VALUE")) {
+//                                StringBuilder nodeValueBuilder = new StringBuilder();
+//                                String[] parts = nodeResponse.split(" ");
+//
+//                                int valueLines = Integer.parseInt(parts[1]);
+//                                for (int i = 0; i < valueLines; i++) {
+//                                    nodeValueBuilder.append(nodeReader.readLine()).append('\n');
+//                                }
+//                                return nodeValueBuilder.toString();
+//                                }
+//                            }
+//                        } catch(IOException e){
+//                            System.err.println("Failed to connect to node at " + nodeAddress);
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                System.err.println("Error during 'get': " + e.getMessage());
+//            }
+//            return null;
+//        }
+
     @Override
     public String get(String key) {
         try {
@@ -191,60 +256,56 @@ public class TemporaryNode implements TemporaryNodeInterface {
             String response = reader.readLine();
             System.out.println("Response: " + response);
 
+            String[] parts;
+            int valueLines;
             if (response.startsWith("VALUE")) {
                 StringBuilder valueBuilder = new StringBuilder();
-                String[] parts = response.split(" ");
-                int valueLines = Integer.parseInt(parts[1]);
+                parts = response.split(" ");
+                valueLines = Integer.parseInt(parts[1]);
                 for (int i = 0; i < valueLines; i++) {
                     valueBuilder.append(reader.readLine()).append('\n');
                 }
                 return valueBuilder.toString();
             } else if (response.equals("NOPE")) {
-                Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key)));
-                //loop through map
-                // try connect to each node
-                // send GET
+                Map<String, String> nearestNodes = sendNearestRequest(HashID.hashString(key + "\n"));
                 for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
-                    String nodeAddress = entry.getValue();
                     String nodeName = entry.getKey();
+                    String nodeAddress = entry.getValue();
 
-                    try (Socket socket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
-                         BufferedWriter nodeWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-                        //send start
+                    System.out.println("Trying nearest node " + nodeName + " at " + nodeAddress);
+                    try (Socket nearestNodeSocket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
+                         BufferedWriter nearestNodeWriter = new BufferedWriter(new OutputStreamWriter(nearestNodeSocket.getOutputStream()));
+                         BufferedReader nearestNodeReader = new BufferedReader(new InputStreamReader(nearestNodeSocket.getInputStream()))) {
 
-                        nodeWriter.write("START 1 " + nodeName + "\n");
-                        nodeWriter.flush();
-
-                        String startResponse = nodeReader.readLine();
-                        System.out.println("Start response: " + startResponse);
+                        nearestNodeWriter.write("START 1 " + nodeName + "\n");
+                        nearestNodeWriter.flush();
+                        String startResponse = nearestNodeReader.readLine();
                         if (startResponse != null && startResponse.startsWith("START")) {
+                            nearestNodeWriter.write("GET? " + keyLines + "\n" + key);
+                            nearestNodeWriter.flush();
 
-                            nodeWriter.write("GET? " + keyLines + "\n" + key);
-                            nodeWriter.flush();
-
-                            String nodeResponse = nodeReader.readLine();
-                            if (nodeResponse.startsWith("VALUE")) {
-                                StringBuilder nodeValueBuilder = new StringBuilder();
-                                String[] parts = nodeResponse.split(" ");
-
-                                int valueLines = Integer.parseInt(parts[1]);
+                            String nearestNodeResponse = nearestNodeReader.readLine();
+                            if (nearestNodeResponse.startsWith("VALUE")) {
+                                StringBuilder nearestNodeValueBuilder = new StringBuilder();
+                                parts = nearestNodeResponse.split(" ");
+                                valueLines = Integer.parseInt(parts[1]);
                                 for (int i = 0; i < valueLines; i++) {
-                                    nodeValueBuilder.append(nodeReader.readLine()).append('\n');
+                                    nearestNodeValueBuilder.append(nearestNodeReader.readLine()).append('\n');
                                 }
-                                return nodeValueBuilder.toString();
-                                }
+                                return nearestNodeValueBuilder.toString();
                             }
-                        } catch(IOException e){
-                            System.err.println("Failed to connect to node at " + nodeAddress);
                         }
+                    } catch (IOException e) {
+                        System.err.println("Failed to connect to nearest node at " + nodeAddress + ": " + e.getMessage());
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("Error during 'get': " + e.getMessage());
             }
-            return null;
+        } catch (Exception e) {
+            System.err.println("Error during 'get': " + e.getMessage());
         }
+        return null;
+    }
+
 
 
 
