@@ -185,7 +185,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
     public String get(String key) {
         try {
             int keyLines = key.split("\n", -1).length;
-            String request = "GET? " + keyLines + "\n" + key + "\n";
+            String request = "GET? " + keyLines + "\n" + key;
             writer.write(request);
             writer.flush();
 
