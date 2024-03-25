@@ -98,25 +98,25 @@ public class TemporaryNode implements TemporaryNodeInterface {
             String ci = reader.readLine();
             System.out.println(ci);
             String[] response = ci.split(" ");
-            if (!response[0].equals("VALUE")) {
-                return "NOPE";
-            }
+            if (ci.startsWith("VALUE")) {
+                String string = "";
+                int l = Integer.parseInt(response[1]);
+                for (int i = 0; i < l; i++) {
+                    String k = reader.readLine();
+                    string = string + k + "\n";
 
-            String string = "";
-            int l = Integer.parseInt(response[1]);
-            for (int i = 0; i < l; i++) {
-                String k = reader.readLine();
-                string = string + k + "\n";
+                }
+                return string;
             }
-
-            return string;
         } catch (Exception e) {
             System.err.println("IO error during 'get': " + e.getMessage());
-            return "null";
         }
+        return null;
 
     }
-    public boolean sendEchoRequest() {
+
+
+        public boolean sendEchoRequest() {
         try {
             writer.write("ECHO?\n");
             writer.flush();
