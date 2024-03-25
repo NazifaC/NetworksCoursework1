@@ -35,12 +35,10 @@ public class TemporaryNode implements TemporaryNodeInterface {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             String startMessage = "START 1 " + startingNodeName + "\n";
-            System.out.println("Sending: " + startMessage);
             writer.write(startMessage);
             writer.flush();
 
             String response = reader.readLine();
-            System.out.println("Response: " + response);
 
             if (response != null && response.startsWith("START")) {
                 return true;
@@ -96,7 +94,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             writer.flush();
 
             String ci = reader.readLine();
-            System.out.println(ci);
+            System.out.println("REPLY: " + ci);
             if (ci.startsWith("VALUE")) {
                 String[] response = ci.split(" ");
                 String string = "";
