@@ -91,14 +91,14 @@ public class TemporaryNode implements TemporaryNodeInterface {
         try {
             int keyLines = key.split("\n").length;
 
-            String request = "GET? " + keyLines + "\n" + key + "\n";
+            String request = "GET? " + keyLines + "\n" + key;
             writer.write(request);
             writer.flush();
 
             String ci = reader.readLine();
             System.out.println(ci);
-            String[] response = ci.split(" ");
             if (ci.startsWith("VALUE")) {
+                String[] response = ci.split(" ");
                 String string = "";
                 int l = Integer.parseInt(response[1]);
                 for (int i = 0; i < l; i++) {
