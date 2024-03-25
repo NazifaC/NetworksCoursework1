@@ -171,6 +171,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                     String nodeName = reader.readLine();
                     String nodeAddr = reader.readLine();
                     nearestNodes.put(nodeName,nodeAddr);
+                    System.out.println(nodeName + " " + nodeAddr);
                }
             }
         } catch (IOException e) {
