@@ -171,8 +171,11 @@ public class TemporaryNode implements TemporaryNodeInterface {
                     String nodeInfo = reader.readLine();
                     String[] parts = nodeInfo.split(",");
                     if (parts.length >= 2) {
+                        System.out.println("HERE1");
                         String nodeName = parts[0];
+                        System.out.println("HERE2");
                         String nodeAddress = parts[1];
+                        System.out.println("HERE3");
                         System.out.println("Node: " + nodeName + ", Address: " + nodeAddress);
                         nearestNodes.put(nodeName, nodeAddress);
                     }
@@ -225,9 +228,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         if (nodeResponse.startsWith("VALUE")) {
                             StringBuilder nodeValueBuilder = new StringBuilder();
                             String[] parts = nodeResponse.split(" ");
-                            System.out.println("BEFORE");
+
                             int valueLines = Integer.parseInt(parts[1]);
-                            System.out.println("AFTER");
                             for (int i = 0; i < valueLines; i++) {
                                 nodeValueBuilder.append(nodeReader.readLine()).append('\n');
                             }
