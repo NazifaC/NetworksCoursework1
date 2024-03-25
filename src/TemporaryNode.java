@@ -168,18 +168,10 @@ public class TemporaryNode implements TemporaryNodeInterface {
             if (responseHeader != null && responseHeader.startsWith("NODES")) {
                 int numberOfNodes = Integer.parseInt(responseHeader.split(" ")[1]);
                 for (int i = 0; i < numberOfNodes; i++) {
-                    String nodeInfo = reader.readLine();
-                    String[] parts = nodeInfo.split(",");
-                    if (parts.length >= 2) {
-                        System.out.println("HERE1");
-                        String nodeName = parts[0];
-                        System.out.println("HERE2");
-                        String nodeAddress = parts[1];
-                        System.out.println("HERE3");
-                        System.out.println("Node: " + nodeName + ", Address: " + nodeAddress);
-                        nearestNodes.put(nodeName, nodeAddress);
-                    }
-                }
+                    String nodeName = reader.readLine();
+                    String nodeAddr = reader.readLine();
+                    nearestNodes.put(nodeName,nodeAddr);
+               }
             }
         } catch (IOException e) {
             System.err.println("Error sending NEAREST? request: " + e.getMessage());
