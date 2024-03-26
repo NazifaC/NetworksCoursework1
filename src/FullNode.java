@@ -7,6 +7,8 @@
 // nazifa.chowdhury@city.ac.uk
 
 
+import org.w3c.dom.Node;
+
 import java.io.*;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -29,7 +31,7 @@ public class FullNode implements FullNodeInterface {
     private int portNumber;
     private String name = "naz@city.ac.uk:impl1,fullNode";
     private final HashMap<String, String> keyValueStore = new HashMap<>();
-    private final HashMap<Integer, List<NodeInfo>> networkMap = new HashMap<>();
+    private final HashMap<Integer, ArrayList<NodeInfo>> networkMap = new HashMap<>();
 
     private List<String> nearbyNodeAddresses = new ArrayList<>();
 
@@ -37,11 +39,17 @@ public class FullNode implements FullNodeInterface {
 
     private String currentNodeHash;
 
+    private String currentNodeInfo;
 
     @Override
     public boolean listen(String ipAddress, int portNumber) {
         this.portNumber = portNumber;
-        String currentNodeInfo = ipAddress + ":" + portNumber;
+        currentNodeInfo = ipAddress + ":" + portNumber;
+
+        networkMap.put(0, new ArrayList<>());
+        NodeInfo n = new NodeInfo(name, currentNodeInfo);
+        networkMap.get(0).add(n);
+        System.out.println(networkMap.get(0).get(0).nodeName);
         try {
             socket = new ServerSocket(portNumber);
             System.out.println("FullNode listening on " + ipAddress + ":" + portNumber);
@@ -97,6 +105,7 @@ public class FullNode implements FullNodeInterface {
             }
         } catch (Exception e) {
             System.err.println("Error handling client connection: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
                 clientSocket.close();
@@ -150,11 +159,10 @@ public class FullNode implements FullNodeInterface {
             System.out.println(currentLine);
         }
         String value = valueBuilder.toString();
-
+        System.out.println(nodeIsNearby(hashedKey));
         if (nodeIsNearby(hashedKey)){
             keyValueStore.put(hashedKey, value);
             writer.write("SUCCESS\n");
-            writer.flush();
         } else {
             writer.write("FAILED\n");
         }
@@ -172,22 +180,29 @@ public class FullNode implements FullNodeInterface {
     }
 
     private boolean nodeIsNearby(String hashedKey) throws Exception {
-        byte[] currentHash = HashID.computeHashID(currentNodeHash);
+        byte[] currentHash = HashID.computeHashID(name+"\n");
         byte[] keyHash = hexStringToByteArray(hashedKey);
         int distance = hashDistance(currentHash, keyHash);
 
+        System.out.println(distance);
         ArrayList<NodeInfo> nearest3 = new ArrayList<>();
-
+        System.out.println("OI: "+networkMap.get(0));
         for(int i = distance; i >= 0 && nearest3.size() < 3; i--){
-            List<NodeInfo> c = networkMap.get(distance);
+            ArrayList<NodeInfo> c = networkMap.get(i);
+            System.out.println("C"+i+": " + c);
             if(c == null){
                 continue;
             }
             for (int j = 0; j < 3 && nearest3.size() < 3; j++) {
-                nearest3.add(c.get(j));
+                try{
+                    nearest3.add(c.get(j));
+                }catch (IndexOutOfBoundsException e){
+                    break;
+                }
             }
         }
 
+        System.out.println(nearest3);
         for (NodeInfo n: nearest3) {
             if(n.nodeName.equals(name)){
                 return true;
@@ -237,13 +252,13 @@ public class FullNode implements FullNodeInterface {
         if (parts.length == 2) {
             String hashIDRequest = parts[1];
             try {
-                List<Map.Entry<Integer, List<NodeInfo>>> closestNodes = getClosestNodes(hashIDRequest);
+                List<Map.Entry<Integer, ArrayList<NodeInfo>>> closestNodes = getClosestNodes(hashIDRequest);
 
                 System.out.println("Current network map: " + networkMap);
                 System.out.println("Closest nodes to hashID " + hashIDRequest + ": " + closestNodes);
 
                 writer.write("NODES " + closestNodes.size() + "\n");
-                for (Map.Entry<Integer, List<NodeInfo>> node : closestNodes) {
+                for (Map.Entry<Integer, ArrayList<NodeInfo>> node : closestNodes) {
                     writer.write(node.getKey() + "," + node.getValue() + "\n");
                 }
                 writer.flush();
@@ -273,8 +288,8 @@ public class FullNode implements FullNodeInterface {
     }
 
 
-    private List<Map.Entry<Integer, List<NodeInfo>>> getClosestNodes(String hashID) {
-        List<Map.Entry<Integer, List<NodeInfo>>> eligibleNodes = networkMap.entrySet().stream()
+    private List<Map.Entry<Integer, ArrayList<NodeInfo>>> getClosestNodes(String hashID) {
+        List<Map.Entry<Integer, ArrayList<NodeInfo>>> eligibleNodes = networkMap.entrySet().stream()
                 .filter(entry -> !nodeHashes.get(entry.getKey()).equals(currentNodeHash))
                 .collect(Collectors.toList());
 
@@ -335,9 +350,9 @@ public class FullNode implements FullNodeInterface {
             node.handleIncomingConnections("nazifa.chowdhury@city.ac.uk:YourNodeName", "127.0.0.1:1400");
 
 
-                }
-            }
         }
+    }
+}
 
 
 
