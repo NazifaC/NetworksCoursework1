@@ -10,6 +10,7 @@
 import javax.swing.plaf.synth.SynthOptionPaneUI;
 import java.io.*;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.*;
 
@@ -220,15 +221,12 @@ public class TemporaryNode implements TemporaryNodeInterface {
         return valueBuilder.toString().trim();
     }
 
-    private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress, Set<String> attemptedNodes) throws IOException {
+    private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress, Set<String> attemptedNodes) throws Exception {
         NodeInfo minNode = new NodeInfo(nodeName,nodeAddress);
-        Socket nodeSocket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
+        Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
         Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
         while (true) {
-            try {
-                try {
-
                     nodeWriter.write("START 1 " + nodeName + "\n");
                     nodeWriter.flush();
 
@@ -288,22 +286,13 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         nodeSocket.close();
 
                         //Connect to nearest node.
-                        nodeSocket = new Socket(minNode.nodeAddress.split(":")[0], Integer.parseInt(minNode.nodeAddress.split(":")[1]));
+                        nodeSocket = new Socket(InetAddress.getByName(minNode.nodeAddress.split(":")[0]), Integer.parseInt(minNode.nodeAddress.split(":")[1]));
                         nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
                         nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
 
                         //Start again until the distances between (key hash -> current) < (key hash -> other nodes)
 
                     }
-                }
-            catch (IOException e) {
-                System.err.println("Failed to connect to node at " + nodeAddress + ": " + e.getMessage());
-                e.printStackTrace();
-            }
-            } catch (Exception e) {
-                System.err.println("Error during retrieval from node " + nodeName + ": " + e.getMessage());
-                e.printStackTrace();
-            }
         }
     }
 
