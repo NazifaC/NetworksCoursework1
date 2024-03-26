@@ -141,7 +141,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
     }
 
 
-    public ArrayList<NodeInfo> sendNearestRequest(String hashID) {
+    public ArrayList<NodeInfo> sendNearestRequest(String hashID, Writer writer, BufferedReader reader) {
         ArrayList<NodeInfo> nearestNodes = new ArrayList<>();
         try {
             String nearestRequest = "NEAREST? " + hashID + "\n";
@@ -192,7 +192,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
         if (response.startsWith("VALUE")) {
             return processValueResponse(reader, response);
         } else if (response.equals("NOPE")) {
-            ArrayList<NodeInfo> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
+            ArrayList<NodeInfo> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")), writer, reader);
             for (NodeInfo nodeInfo: nearestNodes) {
                 String nextNodeName = nodeInfo.nodeName;
                 String nextNodeAddress = nodeInfo.nodeAddress;
@@ -259,9 +259,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
 //                    }
                         byte[] hash = HashID.computeHashID(key + "\n");
                         String hashHex = HashID.bytesToHex(hash);
-                        ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex);
-                        for (NodeInfo n: nearestNodes
-                             ) {
+                        ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex, nodeWriter, nodeReader);
+                        for (NodeInfo n: nearestNodes) {
                             System.out.println("NEAREST: " + n.nodeName);
                         }
                         //Find minimum distance node.
@@ -278,7 +277,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                         System.out.println("MIN: " + minNode.nodeName);
 
-                        if(minNode.nodeName == nodeName){
+                        if(Objects.equals(minNode.nodeName, nodeName)){
                             return null;
                         }
                         //Found the nearest node
@@ -337,7 +336,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             System.out.println(notifySuccess);
 
             String hashID = "0f003b106b2ce5e1f95df39fffa34c2341f2141383ca46709269b13b1e6b4832";
-            node.sendNearestRequest(hashID);
+            //node.sendNearestRequest(hashID,);
 
             try {
 
