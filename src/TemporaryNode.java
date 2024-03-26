@@ -263,8 +263,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                         //Find minimum distance node.
                         for (NodeInfo nodeInfo: nearestNodes) {
-                            byte[] h1 = HashID.computeHashID(minNode.nodeName);
-                            byte[] h2 = HashID.computeHashID(nodeInfo.nodeName);
+                            byte[] h1 = HashID.computeHashID(minNode.nodeName+"\n");
+                            byte[] h2 = HashID.computeHashID(nodeInfo.nodeName+"\n");
                             int distanceMin = hashDistance(hash, h1);
                             int distanceName = hashDistance(h2, hash);
 
