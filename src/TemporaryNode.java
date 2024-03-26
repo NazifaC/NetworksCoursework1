@@ -273,6 +273,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                             }
                         }
 
+                        System.out.println("MIN: " + minNode.nodeName);
+
                         if(minNode.nodeName == nodeName){
                             return null;
                         }
