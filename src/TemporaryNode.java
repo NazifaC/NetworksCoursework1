@@ -286,54 +286,54 @@ public class TemporaryNode implements TemporaryNodeInterface {
         return valueBuilder.toString().trim();
     }
 
-//    private String processNopeResponse(String key) throws Exception {
-//        Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
-//
-//        String closestNodeAddress = null;
-//        String closestNodeName = null;
-//        int minDistance = Integer.MAX_VALUE;
-//
-//        BigInteger keyHash = new BigInteger(HashID.bytesToHex(HashID.computeHashID(key + "\n")), 16);
-//
-//        for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
-//            String nodeName = entry.getKey();
-//            String nodeAddress = entry.getValue();
-//            BigInteger nodeHash = new BigInteger(HashID.bytesToHex(HashID.computeHashID(nodeName + "\n")), 16);
-//            int distance = keyHash.xor(nodeHash).bitCount();
-//
-//            if (distance < minDistance) {
-//                minDistance = distance;
-//                closestNodeAddress = nodeAddress;
-//                closestNodeName = nodeName;
-//            }
-//        }
-//
-//        if (closestNodeAddress != null) {
-//            System.out.println("Attempting to get value from the closest node: " + closestNodeName + " at " + closestNodeAddress);
-//            return attemptGetValueFromNode(key, closestNodeName, closestNodeAddress);
-//        }
-//
-//        return null;
-//    }
-
     private String processNopeResponse(String key) throws Exception {
         Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
 
-        //find minimum of the 3 nodes relative to the key
-        //once thats found, connect to that node
-        //once connected, continue cycle
+        String closestNodeAddress = null;
+        String closestNodeName = null;
+        int minDistance = Integer.MAX_VALUE;
+
+        BigInteger keyHash = new BigInteger(HashID.bytesToHex(HashID.computeHashID(key + "\n")), 16);
+
         for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
             String nodeName = entry.getKey();
             String nodeAddress = entry.getValue();
-            System.out.println("Trying nearest node " + nodeName + " at " + nodeAddress);
+            BigInteger nodeHash = new BigInteger(HashID.bytesToHex(HashID.computeHashID(nodeName + "\n")), 16);
+            int distance = keyHash.xor(nodeHash).bitCount();
 
-            String result = attemptGetValueFromNode(key, nodeName, nodeAddress);
-            if (result != null) {
-                return result;
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestNodeAddress = nodeAddress;
+                closestNodeName = nodeName;
             }
         }
+
+        if (closestNodeAddress != null) {
+            System.out.println("Attempting to get value from the closest node: " + closestNodeName + " at " + closestNodeAddress);
+            return attemptGetValueFromNode(key, closestNodeName, closestNodeAddress);
+        }
+
         return null;
     }
+
+//    private String processNopeResponse(String key) throws Exception {
+//        Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
+//
+//        //find minimum of the 3 nodes relative to the key
+//        //once thats found, connect to that node
+//        //once connected, continue cycle
+//        for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
+//            String nodeName = entry.getKey();
+//            String nodeAddress = entry.getValue();
+//            System.out.println("Trying nearest node " + nodeName + " at " + nodeAddress);
+//
+//            String result = attemptGetValueFromNode(key, nodeName, nodeAddress);
+//            if (result != null) {
+//                return result;
+//            }
+//        }
+//        return null;
+//    }
 
     private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress) {
         try (Socket nodeSocket = new Socket(nodeAddress.split(":")[0], Integer.parseInt(nodeAddress.split(":")[1]));
