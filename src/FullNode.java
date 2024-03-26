@@ -2,9 +2,9 @@
 // Coursework 2023/2024
 //
 // Submission by
-// YOUR_NAME_GOES_HERE
-// YOUR_STUDENT_ID_NUMBER_GOES_HERE
-// YOUR_EMAIL_GOES_HERE
+// Nazifa Chowdhury
+// 220051752
+// nazifa.chowdhury@city.ac.uk
 
 
 import java.io.*;
@@ -27,10 +27,9 @@ interface FullNodeInterface {
 public class FullNode implements FullNodeInterface {
     private ServerSocket socket;
     private int portNumber;
+    private String name = "naz@city.ac.uk:impl1,fullNode";
     private final HashMap<String, String> keyValueStore = new HashMap<>();
-    private final HashMap<String, String> networkMap = new HashMap<>();
-
-    private final Map<String, String[]> nodeInfos = new HashMap<>();
+    private final HashMap<Integer, List<NodeInfo>> networkMap = new HashMap<>();
 
     private List<String> nearbyNodeAddresses = new ArrayList<>();
 
@@ -130,7 +129,7 @@ public class FullNode implements FullNodeInterface {
     }
 
 
-    private void handlePutRequest(String line, BufferedReader reader, BufferedWriter writer) throws IOException {
+    private void handlePutRequest(String line, BufferedReader reader, BufferedWriter writer) throws Exception {
         int keyLines = Integer.parseInt(line.split(" ")[1]);
         StringBuilder keyBuilder = new StringBuilder();
         String currentLine;
@@ -152,17 +151,48 @@ public class FullNode implements FullNodeInterface {
         }
         String value = valueBuilder.toString();
 
-        keyValueStore.put(hashedKey, value);
-        writer.write("SUCCESS\n");
+        if (nodeIsNearby(hashedKey)){
+            keyValueStore.put(hashedKey, value);
+            writer.write("SUCCESS\n");
+            writer.flush();
+        } else {
+            writer.write("FAILED\n");
+        }
         writer.flush();
+
     }
 
-    private void handleNotifyRequest(BufferedReader reader, BufferedWriter writer) throws IOException {
+    private boolean nodeIsNearby(String hashedKey) throws Exception {
+        byte[] currentHash = HashID.computeHashID(currentNodeHash);
+
+        TreeMap<Integer, String> distanceMap = new TreeMap<>();
+        for (Map.Entry<Integer, List<NodeInfo>> entry : networkMap.entrySet()) {
+            for (NodeInfo nodeInfo : entry.getValue()) {
+                byte[] nodeHash = HashID.computeHashID(nodeInfo.nodeName);
+                int distance = hashDistance(HashID.computeHashID(hashedKey), nodeHash);
+                distanceMap.put(distance, nodeInfo.nodeName);
+            }
+        }
+
+        String currentNodeIdentifier = this.name;
+
+        int count = 0;
+        for (Map.Entry<Integer, String> entry : distanceMap.entrySet()) {
+            if (entry.getValue().equals(currentNodeIdentifier)) {
+                return true;
+            }
+            if (++count == 3) break;
+        }
+
+        return false;
+    }
+
+    private void handleNotifyRequest(BufferedReader reader, BufferedWriter writer) throws Exception {
         String nodeName = reader.readLine();
         String nodeAddress = reader.readLine();
 
         if (nodeName != null && nodeAddress != null) {
-            networkMap.put(nodeName, nodeAddress);
+            updateNetworkMap(nodeName, nodeAddress);
             System.out.println("Node notified: " + nodeName + " at " + nodeAddress);
 
 
@@ -175,7 +205,6 @@ public class FullNode implements FullNodeInterface {
             writer.flush();
         }
     }
-
 
 
     public void notifyNearbyNodes(String nodeName, String nodeAddress) {
@@ -198,13 +227,13 @@ public class FullNode implements FullNodeInterface {
         if (parts.length == 2) {
             String hashIDRequest = parts[1];
             try {
-                List<Map.Entry<String, String>> closestNodes = getClosestNodes(hashIDRequest);
+                List<Map.Entry<Integer, List<NodeInfo>>> closestNodes = getClosestNodes(hashIDRequest);
 
                 System.out.println("Current network map: " + networkMap);
                 System.out.println("Closest nodes to hashID " + hashIDRequest + ": " + closestNodes);
 
                 writer.write("NODES " + closestNodes.size() + "\n");
-                for (Map.Entry<String, String> node : closestNodes) {
+                for (Map.Entry<Integer, List<NodeInfo>> node : closestNodes) {
                     writer.write(node.getKey() + "," + node.getValue() + "\n");
                 }
                 writer.flush();
@@ -218,23 +247,43 @@ public class FullNode implements FullNodeInterface {
         }
     }
 
+    public synchronized void updateNetworkMap(String nodeName, String nodeAddress) throws Exception {
+        byte[] nameHash = HashID.computeHashID(name);
+        byte[] nodeHash = HashID.computeHashID(nodeName);
+        int distance = hashDistance(nodeHash, nameHash);
+        if (!networkMap.containsKey(distance)) {
+            networkMap.put(distance, new ArrayList<>());
+        }
+        if (networkMap.size() == 3) {
+            networkMap.get(distance).remove(0);
+        }
+        System.out.println("Added node: " + nodeName + " at " + nodeAddress);
 
-    private List<Map.Entry<String, String>> getClosestNodes(String hashID) {
-        List<Map.Entry<String, String>> eligibleNodes = networkMap.entrySet().stream()
+        networkMap.get(distance).add(new NodeInfo(nodeName, nodeAddress));
+    }
+
+
+    private List<Map.Entry<Integer, List<NodeInfo>>> getClosestNodes(String hashID) {
+        List<Map.Entry<Integer, List<NodeInfo>>> eligibleNodes = networkMap.entrySet().stream()
                 .filter(entry -> !nodeHashes.get(entry.getKey()).equals(currentNodeHash))
                 .collect(Collectors.toList());
 
-        eligibleNodes.sort(Comparator.comparingInt(e -> hashDistance(hashID, nodeHashes.get(e.getKey()))));
         return eligibleNodes.subList(0, Math.min(3, eligibleNodes.size()));
     }
 
 
-    private int hashDistance(String hashID1, String hashID2) {
-        BigInteger b1 = new BigInteger(hashID1, 16);
-        BigInteger b2 = new BigInteger(hashID2, 16);
-        return b1.xor(b2).bitCount();
+    private int hashDistance(byte[] hash1, byte[] hash2) {
+        int distance = 256;
+        for (int i = 0; i < hash1.length; i++) {
+            int diff = 0xff & (hash1[i] ^ hash2[i]);
+            int calc = Integer.numberOfLeadingZeros(diff) - 24;
+            distance -= calc;
+            if (diff != 0) {
+                break;
+            }
+        }
+        return distance;
     }
-
 
 
 

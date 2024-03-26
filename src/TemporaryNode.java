@@ -29,8 +29,6 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
     private BufferedWriter writer;
 
-    List<String> nearestNodes = new ArrayList<>();
-
 
     @Override
     public boolean start(String startingNodeName, String startingNodeAddress) {
@@ -273,15 +271,15 @@ public class TemporaryNode implements TemporaryNodeInterface {
 //        return null;
 //    }
 //
-    private String processValueResponse(BufferedReader reader, String response) throws IOException {
-        StringBuilder valueBuilder = new StringBuilder();
-        String[] parts = response.split(" ");
-        int valueLines = Integer.parseInt(parts[1]);
-        for (int i = 0; i < valueLines; i++) {
-            valueBuilder.append(reader.readLine()).append('\n');
-        }
-        return valueBuilder.toString().trim();
-    }
+//    private String processValueResponse(BufferedReader reader, String response) throws IOException {
+//        StringBuilder valueBuilder = new StringBuilder();
+//        String[] parts = response.split(" ");
+//        int valueLines = Integer.parseInt(parts[1]);
+//        for (int i = 0; i < valueLines; i++) {
+//            valueBuilder.append(reader.readLine()).append('\n');
+//        }
+//        return valueBuilder.toString().trim();
+//    }
 //
 //    private String processNopeResponse(String key) throws Exception {
 //        Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
@@ -393,6 +391,16 @@ public class TemporaryNode implements TemporaryNodeInterface {
             }
         }
         return null;
+    }
+
+    private String processValueResponse(BufferedReader reader, String response) throws IOException {
+        StringBuilder valueBuilder = new StringBuilder();
+        String[] parts = response.split(" ");
+        int valueLines = Integer.parseInt(parts[1]);
+        for (int i = 0; i < valueLines; i++) {
+            valueBuilder.append(reader.readLine()).append('\n');
+        }
+        return valueBuilder.toString().trim();
     }
 
     private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress, Set<String> attemptedNodes) {
