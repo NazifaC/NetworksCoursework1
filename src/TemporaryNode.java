@@ -255,7 +255,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 //                            }
 //                        }
 //                    }
-                        byte[] hash = HashID.computeHashID(key + "\n");
+                        byte[] hash = HashID.computeHashID(key);
                         String hashHex = HashID.bytesToHex(hash);
                         ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex, nodeWriter, nodeReader);
                         for (NodeInfo n: nearestNodes) {
