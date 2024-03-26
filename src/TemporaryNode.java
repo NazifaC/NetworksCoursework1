@@ -260,7 +260,10 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         byte[] hash = HashID.computeHashID(key + "\n");
                         String hashHex = HashID.bytesToHex(hash);
                         ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex);
-
+                        for (NodeInfo n: nearestNodes
+                             ) {
+                            System.out.println("NEAREST: " + n.nodeName);
+                        }
                         //Find minimum distance node.
                         for (NodeInfo nodeInfo: nearestNodes) {
                             byte[] h1 = HashID.computeHashID(minNode.nodeName+"\n");
