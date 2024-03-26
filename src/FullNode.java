@@ -161,27 +161,37 @@ public class FullNode implements FullNodeInterface {
         writer.flush();
 
     }
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
 
     private boolean nodeIsNearby(String hashedKey) throws Exception {
         byte[] currentHash = HashID.computeHashID(currentNodeHash);
+        byte[] keyHash = hexStringToByteArray(hashedKey);
+        int distance = hashDistance(currentHash, keyHash);
 
-        TreeMap<Integer, String> distanceMap = new TreeMap<>();
-        for (Map.Entry<Integer, List<NodeInfo>> entry : networkMap.entrySet()) {
-            for (NodeInfo nodeInfo : entry.getValue()) {
-                byte[] nodeHash = HashID.computeHashID(nodeInfo.nodeName);
-                int distance = hashDistance(HashID.computeHashID(hashedKey), nodeHash);
-                distanceMap.put(distance, nodeInfo.nodeName);
+        ArrayList<NodeInfo> nearest3 = new ArrayList<>();
+
+        for(int i = distance; i >= 0 && nearest3.size() < 3; i--){
+            List<NodeInfo> c = networkMap.get(distance);
+            if(c == null){
+                continue;
+            }
+            for (int j = 0; j < 3 && nearest3.size() < 3; j++) {
+                nearest3.add(c.get(j));
             }
         }
 
-        String currentNodeIdentifier = this.name;
-
-        int count = 0;
-        for (Map.Entry<Integer, String> entry : distanceMap.entrySet()) {
-            if (entry.getValue().equals(currentNodeIdentifier)) {
+        for (NodeInfo n: nearest3) {
+            if(n.nodeName.equals(name)){
                 return true;
             }
-            if (++count == 3) break;
         }
 
         return false;
