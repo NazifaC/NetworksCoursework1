@@ -101,6 +101,7 @@ public class FullNode implements FullNodeInterface {
                         writer.flush();
                         break;
                     case "END":
+                        clientSocket.close();
                         break;
                 }
             }
@@ -325,6 +326,10 @@ public class FullNode implements FullNodeInterface {
         }
         return distance;
     }
+
+
+
+
 
 
 
