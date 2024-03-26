@@ -63,6 +63,7 @@ public class FullNode implements FullNodeInterface {
             }
         } catch (IOException e) {
             System.err.println("Could not listen on " + ipAddress + ":" + portNumber);
+            e.printStackTrace();
             return false;
         }
     }
@@ -111,6 +112,7 @@ public class FullNode implements FullNodeInterface {
                 clientSocket.close();
             } catch (IOException e) {
                 System.err.println("Error closing the connection: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -243,6 +245,7 @@ public class FullNode implements FullNodeInterface {
 
                 System.out.println("Notified nearby node at " + address);
             } catch (IOException e) {
+                e.printStackTrace();
                 System.err.println("Failed to notify nearby node at " + address + ": " + e.getMessage());
             }
         }
@@ -252,19 +255,18 @@ public class FullNode implements FullNodeInterface {
         if (parts.length == 2) {
             String hashIDRequest = parts[1];
             try {
-                List<Map.Entry<Integer, ArrayList<NodeInfo>>> closestNodes = getClosestNodes(hashIDRequest);
+                List<NodeInfo> closestNodes = getClosestNodes(hashIDRequest);
 
                 System.out.println("Current network map: " + networkMap);
                 System.out.println("Closest nodes to hashID " + hashIDRequest + ": " + closestNodes);
 
                 writer.write("NODES " + closestNodes.size() + "\n");
-                for (Map.Entry<Integer, ArrayList<NodeInfo>> node : closestNodes) {
-                    writer.write(node.getKey() + "," + node.getValue() + "\n");
+                for (NodeInfo node : closestNodes) {
+                    writer.write(node.nodeName+"\n"+node.nodeAddress+"\n");
                 }
                 writer.flush();
             } catch (Exception e) {
-                writer.write("ERROR processing NEAREST? request\n");
-                writer.flush();
+                e.printStackTrace();
             }
         } else {
             writer.write("ERROR Invalid NEAREST? format\n");
@@ -272,9 +274,31 @@ public class FullNode implements FullNodeInterface {
         }
     }
 
+    private List<NodeInfo> getClosestNodes(String hashID) throws Exception {
+        byte[] hash = hexStringToByteArray(hashID);
+        byte[] hashName = HashID.computeHashID(name+"\n");
+
+        int distance = hashDistance(hash, hashName);
+
+        ArrayList<NodeInfo> nodes = new ArrayList<>();
+        for (int i = distance; i >= 0; i--){
+            List<NodeInfo> n = networkMap.get(i);
+            if(n == null){
+                continue;
+            }
+            for(NodeInfo ni : n){
+                nodes.add(ni);
+                if(nodes.size() == 3){
+                    break;
+                }
+            }
+        }
+        return nodes;
+    }
+
     public synchronized void updateNetworkMap(String nodeName, String nodeAddress) throws Exception {
-        byte[] nameHash = HashID.computeHashID(name);
-        byte[] nodeHash = HashID.computeHashID(nodeName);
+        byte[] nameHash = HashID.computeHashID(name+"\n");
+        byte[] nodeHash = HashID.computeHashID(nodeName+"\n");
         int distance = hashDistance(nodeHash, nameHash);
         if (!networkMap.containsKey(distance)) {
             networkMap.put(distance, new ArrayList<>());
@@ -287,14 +311,6 @@ public class FullNode implements FullNodeInterface {
         networkMap.get(distance).add(new NodeInfo(nodeName, nodeAddress));
     }
 
-
-    private List<Map.Entry<Integer, ArrayList<NodeInfo>>> getClosestNodes(String hashID) {
-        List<Map.Entry<Integer, ArrayList<NodeInfo>>> eligibleNodes = networkMap.entrySet().stream()
-                .filter(entry -> !nodeHashes.get(entry.getKey()).equals(currentNodeHash))
-                .collect(Collectors.toList());
-
-        return eligibleNodes.subList(0, Math.min(3, eligibleNodes.size()));
-    }
 
 
     private int hashDistance(byte[] hash1, byte[] hash2) {
@@ -337,8 +353,10 @@ public class FullNode implements FullNodeInterface {
             socket.close();
         } catch (IOException e) {
             System.err.println("Could not connect to starting node at " + startingNodeAddress + ": " + e.getMessage());
+            e.printStackTrace();
         } catch (NumberFormatException e) {
             System.err.println("Invalid port number in starting node address: " + startingNodeAddress);
+            e.printStackTrace();
         }
     }
 

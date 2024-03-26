@@ -79,6 +79,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return "SUCCESS".equals(response);
         } catch (Exception e) {
             System.err.println("IO error during 'store': " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
 
@@ -117,6 +118,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return response.equals("OHCE");
         } catch (IOException e) {
             System.err.println("Error sending ECHO request: " + e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
@@ -133,6 +135,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return "NOTIFIED".equals(response);
         } catch (IOException e) {
             System.err.println("Error sending NOTIFY request: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -159,6 +162,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             }
         } catch (IOException e) {
             System.err.println("Error sending NEAREST? request: " + e.getMessage());
+            e.printStackTrace();
         }
         return nearestNodes;
     }
@@ -171,35 +175,11 @@ public class TemporaryNode implements TemporaryNodeInterface {
             return getRecursive(key, new HashSet<>());
         } catch (Exception e) {
             System.err.println("Error during 'get': " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
 
-//    private String getRecursive(String key, Set<String> attemptedNodes) throws Exception {
-//        int keyLines = key.split("\n").length;
-//        writer.write("GET? " + keyLines + "\n" + key);
-//        writer.flush();
-//
-//        String response = reader.readLine();
-//        System.out.println("Response: " + response);
-//
-//        if (response.startsWith("VALUE")) {
-//            return processValueResponse(reader, response);
-//        } else if (response.equals("NOPE")) {
-//            //need to try to connect to other nodes
-//            Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
-//            for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
-//                if (!attemptedNodes.contains(entry.getValue())) {
-//                    attemptedNodes.add(entry.getValue());
-//                    String result = attemptGetValueFromNode(key, entry.getKey(), entry.getValue(), attemptedNodes);
-//                    if (result != null) {
-//                        return result;
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
 
     private String getRecursive(String key, Set<String> attemptedNodes) throws Exception {
         int keyLines = key.split("\n").length;
@@ -278,8 +258,10 @@ public class TemporaryNode implements TemporaryNodeInterface {
             }
         } catch (IOException e) {
             System.err.println("Failed to connect to node at " + nodeAddress + ": " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
             System.err.println("Error during retrieval from node " + nodeName + ": " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -293,7 +275,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
             boolean storeSuccess = node.store("Welcome", "Hello\nWorld!");
             System.out.println((storeSuccess ? "SUCCESS" : "UNSUCCESSFUL") + "\n");
 
-            String value = node.get("Welcome");
+            String value = node.get("Welcome\n");
             System.out.println(value);
 
             boolean echoSuccess = node.sendEchoRequest();
@@ -302,20 +284,21 @@ public class TemporaryNode implements TemporaryNodeInterface {
             boolean notifySuccess = node.notifyOtherNode("testNode@example.com:NodeName", "127.0.0.1:1400");
             System.out.println(notifySuccess);
 
-            String hashID = "exampleHashID";
+            String hashID = "0f003b106b2ce5e1f95df39fffa34c2341f2141383ca46709269b13b1e6b4832";
             node.sendNearestRequest(hashID);
 
             try {
 
                 System.out.println(node.reader.readLine());
             } catch (Exception e) {
-                e.getMessage();
+                e.printStackTrace();
             }
 
             try {
                 node.socket.close();
             } catch (Exception e) {
                 System.err.println("Exception while closing socket: " + e);
+                e.printStackTrace();
             }
         } else {
             System.out.println("Failed to connect to the network.");
