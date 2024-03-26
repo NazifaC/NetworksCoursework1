@@ -87,15 +87,34 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
 
 
-        public boolean sendEchoRequest() {
+//        public boolean sendEchoRequest() {
+//        try {
+//            writer.write("ECHO?\n");
+//            writer.flush();
+//            String response = reader.readLine();
+//
+//            System.out.println(response);
+//            return response.equals("OHCE");
+//
+//        } catch (IOException e) {
+//            System.err.println("Error sending ECHO request: " + e.getMessage());
+//        }
+//        return false;
+//    }
+
+    public boolean sendEchoRequest() {
         try {
             writer.write("ECHO?\n");
             writer.flush();
             String response = reader.readLine();
 
+            if (response == null) {
+                System.err.println("No response received, the connection might have been closed.");
+                return false;
+            }
+
             System.out.println(response);
             return response.equals("OHCE");
-
         } catch (IOException e) {
             System.err.println("Error sending ECHO request: " + e.getMessage());
         }
@@ -156,6 +175,32 @@ public class TemporaryNode implements TemporaryNodeInterface {
         return null;
     }
 
+//    private String getRecursive(String key, Set<String> attemptedNodes) throws Exception {
+//        int keyLines = key.split("\n").length;
+//        writer.write("GET? " + keyLines + "\n" + key);
+//        writer.flush();
+//
+//        String response = reader.readLine();
+//        System.out.println("Response: " + response);
+//
+//        if (response.startsWith("VALUE")) {
+//            return processValueResponse(reader, response);
+//        } else if (response.equals("NOPE")) {
+//            //need to try to connect to other nodes
+//            Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
+//            for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
+//                if (!attemptedNodes.contains(entry.getValue())) {
+//                    attemptedNodes.add(entry.getValue());
+//                    String result = attemptGetValueFromNode(key, entry.getKey(), entry.getValue(), attemptedNodes);
+//                    if (result != null) {
+//                        return result;
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+//    }
+
     private String getRecursive(String key, Set<String> attemptedNodes) throws Exception {
         int keyLines = key.split("\n").length;
         writer.write("GET? " + keyLines + "\n" + key);
@@ -169,9 +214,12 @@ public class TemporaryNode implements TemporaryNodeInterface {
         } else if (response.equals("NOPE")) {
             Map<String, String> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")));
             for (Map.Entry<String, String> entry : nearestNodes.entrySet()) {
-                if (!attemptedNodes.contains(entry.getValue())) {
-                    attemptedNodes.add(entry.getValue());
-                    String result = attemptGetValueFromNode(key, entry.getKey(), entry.getValue(), attemptedNodes);
+                String nextNodeName = entry.getKey();
+                String nextNodeAddress = entry.getValue();
+
+                if (!attemptedNodes.contains(nextNodeAddress)) {
+                    attemptedNodes.add(nextNodeAddress);
+                    String result = attemptGetValueFromNode(key, nextNodeName, nextNodeAddress, attemptedNodes);
                     if (result != null) {
                         return result;
                     }
@@ -180,6 +228,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
         }
         return null;
     }
+
 
     private String processValueResponse(BufferedReader reader, String response) throws IOException {
         StringBuilder valueBuilder = new StringBuilder();
