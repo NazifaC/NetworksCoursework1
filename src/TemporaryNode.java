@@ -317,7 +317,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         byte[] h2 = HashID.computeHashID(minNode.nodeName+ "\n");
                         int distance1 = hashDistance(hash, h1);
                         int distance2 = hashDistance(hash, h2);
-                        if(distance1 < distance2){
+                        if(distance1 <= distance2){
                             return null;
                         }
 
