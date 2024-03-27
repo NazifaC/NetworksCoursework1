@@ -323,7 +323,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         System.out.println("this is:" + distance1);
                         System.out.println("this is:" + distance2);
 
-                        if(oldNode.nodeName.equals(minNode.nodeName)){
+                        if(distance2<distance1){
                             return null;
                         }
 
