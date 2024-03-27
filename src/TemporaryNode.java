@@ -99,8 +99,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                 if (!attemptedNodes.contains(nextNodeAddress)) {
                     attemptedNodes.add(nextNodeAddress);
-                    String result = attemptStoreAtNode(key,value,nextNodeName, nextNodeAddress);
-                    if (result != null) {
+
+                    if (attemptStoreAtNode(key,value,nextNodeName,nextNodeAddress)) {
                         return false;
                     }
                 }
@@ -112,65 +112,80 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
 
 
-        private String attemptStoreAtNode(String key, String value, String nodeName, String nodeAddress) throws Exception {
-        NodeInfo minNode = new NodeInfo(nodeName, nodeAddress);
-        Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
-        Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
-        BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
-        while (true) {
-            nodeWriter.write("START 1 " + nodeName + "\n");
-            nodeWriter.flush();
+        private boolean attemptStoreAtNode(String key, String value, String nodeName, String nodeAddress) throws Exception {
+            NodeInfo minNode = new NodeInfo(nodeName,nodeAddress);
+            NodeInfo oldNode = new NodeInfo(nodeName,nodeAddress);
+            Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
+            Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
+            BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
+            ArrayList<String> connectedNodes = new ArrayList<>();
+            connectedNodes.add(nodeName);
+            while (true) {
+                nodeWriter.write("START 1 " + nodeName + "\n");
+                nodeWriter.flush();
 
-            String startResponse = nodeReader.readLine();
-            System.out.println("Start response from " + nodeName + ": " + startResponse);
+                String startResponse = nodeReader.readLine();
+                System.out.println("Start response from " + nodeName + ": " + startResponse);
 
-            int keyLines = key.split("\n", -1).length;
-            int valueLines = value.split("\n", -1).length;
-           nodeWriter.write("PUT? " + keyLines + " " + valueLines + "\n" + key + value);
-           nodeWriter.flush();
+                int keyLines = key.split("\n").length;
+                int valueLines = key.split("\n").length;
+                nodeWriter.write("PUT? " + keyLines + " " + valueLines + "\n" + key + value);
+                nodeWriter.flush();
 
-            String response = nodeReader.readLine();
-            System.out.println("Response from " + nodeName + ": " + response);
+                String response = nodeReader.readLine();
+                System.out.println("Response from " + nodeName + ": " + response);
 
-            if (response.startsWith("SUCCESS")) {
-                return "SUCCESS";
-            } else if (response.equals("FAILED")) {
+                if (response.startsWith("SUCCESS")) {
+                    return true;
+                } else if (response.equals("FAILED")) {
 
-                byte[] hash = HashID.computeHashID(key);
-                String hashHex = HashID.bytesToHex(hash);
-                ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex, nodeWriter, nodeReader);
-                for (NodeInfo n: nearestNodes) {
-                    System.out.println("NEAREST: " + n.nodeName);
-                }
-                for (NodeInfo nodeInfo: nearestNodes) {
-                    byte[] h1 = HashID.computeHashID(minNode.nodeName+"\n");
-                    byte[] h2 = HashID.computeHashID(nodeInfo.nodeName+"\n");
-                    int distanceMin = hashDistance(hash, h1);
-                    int distanceName = hashDistance(h2, hash);
-
-                    if(distanceMin > distanceName){
-                        System.out.println(nodeInfo.nodeName);
-                        minNode = nodeInfo;
+                    byte[] hash = HashID.computeHashID(key);
+                    String hashHex = HashID.bytesToHex(hash);
+                    ArrayList<NodeInfo> nearestNodes = sendNearestRequest(hashHex, nodeWriter, nodeReader);
+                    for (NodeInfo n: nearestNodes) {
+                        System.out.println("NEAREST: " + n.nodeName);
                     }
+                    for (NodeInfo nodeInfo: nearestNodes) {
+                        byte[] h1 = HashID.computeHashID(minNode.nodeName+"\n");
+                        byte[] h2 = HashID.computeHashID(nodeInfo.nodeName+"\n");
+                        int distanceMin = hashDistance(hash, h1);
+                        int distanceName = hashDistance(h2, hash);
+
+                        if(distanceMin > distanceName){
+                            System.out.println(nodeInfo.nodeName);
+                            oldNode = minNode;
+                            minNode = nodeInfo;
+
+                        }
+                    }
+
+                    System.out.println("l: "+oldNode.nodeName);
+                    System.out.println("m: "+minNode.nodeName);
+
+                    System.out.println("MIN: " + minNode.nodeName);
+
+                    byte[] h1 = HashID.computeHashID(oldNode.nodeName+ "\n");
+                    byte[] h2 = HashID.computeHashID(minNode.nodeName+ "\n");
+                    int distance1 = hashDistance(hash, h1);
+                    int distance2 = hashDistance(hash, h2);
+                    System.out.println("this is:" + distance1);
+                    System.out.println("this is:" + distance2);
+
+                    if(connectedNodes.contains(minNode.nodeName)){
+                        return false;
+                    }
+
+                    nodeSocket.close();
+
+                    nodeSocket = new Socket(InetAddress.getByName(minNode.nodeAddress.split(":")[0]), Integer.parseInt(minNode.nodeAddress.split(":")[1]));
+                    nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
+                    nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
+
+                    connectedNodes.add(minNode.nodeName);
+
                 }
-
-                System.out.println("MIN: " + minNode.nodeName);
-
-                if(Objects.equals(minNode.nodeName, nodeName)){
-                    return null;
-                }
-
-
-                nodeSocket.close();
-
-                nodeSocket = new Socket(InetAddress.getByName(minNode.nodeAddress.split(":")[0]), Integer.parseInt(minNode.nodeAddress.split(":")[1]));
-                nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
-                nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
-
-
             }
         }
-    }
 
 
     public boolean sendEchoRequest() {
