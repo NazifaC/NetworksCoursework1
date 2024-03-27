@@ -269,7 +269,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
     private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress, Set<String> attemptedNodes) throws Exception {
         NodeInfo minNode = new NodeInfo(nodeName,nodeAddress);
-        NodeInfo oldNode = null;
+        NodeInfo oldNode = new NodeInfo(nodeName,nodeAddress);
         Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
         Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
