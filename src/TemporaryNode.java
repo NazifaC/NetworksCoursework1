@@ -132,7 +132,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 String REQ = "PUT? " + keyLines + " " + valueLines + "\n" + key + value;
                 nodeWriter.write(REQ);
                 nodeWriter.flush();
-                System.out.println(REQ);
+                System.out.print(REQ);
 
                 String response = nodeReader.readLine();
                 System.out.println("Response from 1" + nodeName + ": " + response);
