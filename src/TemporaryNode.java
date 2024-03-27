@@ -100,8 +100,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 if (!attemptedNodes.contains(nextNodeAddress)) {
                     attemptedNodes.add(nextNodeAddress);
 
-                    if (!attemptStoreAtNode(key,value,nextNodeName,nextNodeAddress)) {
-                        return false;
+                    if (attemptStoreAtNode(key,value,nextNodeName,nextNodeAddress)) {
+                        return true;
                     }
                 }
             }
