@@ -133,7 +133,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 nodeWriter.flush();
 
                 String response = nodeReader.readLine();
-                System.out.println("Response from " + nodeName + ": " + response);
+                System.out.println("Response from 1" + nodeName + ": " + response);
 
                 if (response.startsWith("SUCCESS")) {
                     return true;
