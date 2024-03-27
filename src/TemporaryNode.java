@@ -313,8 +313,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                         System.out.println("MIN: " + minNode.nodeName);
 
-                        byte[] h1 = HashID.computeHashID(oldNode.nodeName);
-                        byte[] h2 = HashID.computeHashID(minNode.nodeName);
+                        byte[] h1 = HashID.computeHashID(oldNode.nodeName+ "\n");
+                        byte[] h2 = HashID.computeHashID(minNode.nodeName+ "\n");
                         int distance1 = hashDistance(hash, h1);
                         int distance2 = hashDistance(hash, h2);
                         if(distance1 < distance2){
