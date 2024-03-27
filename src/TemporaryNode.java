@@ -269,6 +269,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
     private String attemptGetValueFromNode(String key, String nodeName, String nodeAddress, Set<String> attemptedNodes) throws Exception {
         NodeInfo minNode = new NodeInfo(nodeName,nodeAddress);
+        NodeInfo oldNode = null;
         Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
         Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
@@ -304,13 +305,19 @@ public class TemporaryNode implements TemporaryNodeInterface {
 
                             if(distanceMin > distanceName){
                                 System.out.println(nodeInfo.nodeName);
+                                oldNode = minNode;
                                 minNode = nodeInfo;
+
                             }
                         }
 
                         System.out.println("MIN: " + minNode.nodeName);
 
-                        if(Objects.equals(minNode.nodeName, nodeName)){
+                        byte[] h1 = HashID.computeHashID(oldNode.nodeName);
+                        byte[] h2 = HashID.computeHashID(minNode.nodeName);
+                        int distance1 = hashDistance(hash, h1);
+                        int distance2 = hashDistance(hash, h2);
+                        if(distance1 < distance2){
                             return null;
                         }
 
