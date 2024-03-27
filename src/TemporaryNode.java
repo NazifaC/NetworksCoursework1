@@ -319,7 +319,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         int distance2 = hashDistance(hash, h2);
                         System.out.println("this is:" + distance1);
                         System.out.println("this is:" + distance2);
-                        if(distance1 <= distance2){
+
+                        if(oldNode.nodeName.equals(minNode.nodeName)){
                             return null;
                         }
 
