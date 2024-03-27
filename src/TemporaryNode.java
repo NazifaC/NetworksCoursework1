@@ -71,17 +71,40 @@ public class TemporaryNode implements TemporaryNodeInterface {
     @Override
     public boolean store(String key, String value) {
         try {
-            String keyHashHex = HashID.bytesToHex(HashID.computeHashID(key + "\n"));
-            ArrayList<NodeInfo> nearestNodes = sendNearestRequest(keyHashHex, this.writer, this.reader);
+            return storeRecursive(key, value, new HashSet<>());
+        } catch (Exception e) {
+            System.err.println("Error during 'get': " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 
-            for (NodeInfo node : nearestNodes) {
-                if (attemptStoreAtNode(key, value, startingNodeName, startingNodeAddress).equals("SUCCESS")) {
-                    return true;
+    private boolean storeRecursive(String key, String value, Set<String> attemptedNodes) throws Exception {
+        int keyLines = key.split("\n").length;
+        int valueLines = value.split("\n").length;
+        String request = "PUT? " + keyLines + " " + valueLines + "\n" + key + value;
+        writer.write(request);
+        writer.flush();
+
+        String response = reader.readLine();
+        System.out.println("Response: " + response);
+
+        if (response.startsWith("SUCCESS")) {
+            return true;
+        } else if (response.equals("FAILED")) {
+            ArrayList<NodeInfo> nearestNodes = sendNearestRequest(HashID.bytesToHex(HashID.computeHashID(key + "\n")), writer, reader);
+            for (NodeInfo nodeInfo: nearestNodes) {
+                String nextNodeName = nodeInfo.nodeName;
+                String nextNodeAddress = nodeInfo.nodeAddress;
+
+                if (!attemptedNodes.contains(nextNodeAddress)) {
+                    attemptedNodes.add(nextNodeAddress);
+                    String result = attemptStoreAtNode(key,value,nextNodeName, nextNodeAddress);
+                    if (result != null) {
+                        return false;
+                    }
                 }
             }
-        } catch (Exception e) {
-            System.err.println("Error during 'store': " + e.getMessage());
-            e.printStackTrace();
         }
         return false;
     }
