@@ -308,6 +308,9 @@ public class TemporaryNode implements TemporaryNodeInterface {
                                 oldNode = minNode;
                                 minNode = nodeInfo;
 
+                                System.out.println("l: "+oldNode.nodeName);
+                                System.out.println("m: "+minNode.nodeName);
+
                             }
                         }
 
