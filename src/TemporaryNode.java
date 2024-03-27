@@ -273,6 +273,8 @@ public class TemporaryNode implements TemporaryNodeInterface {
         Socket nodeSocket = new Socket(InetAddress.getByName(nodeAddress.split(":")[0]), Integer.parseInt(nodeAddress.split(":")[1]));
         Writer nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
         BufferedReader nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
+        ArrayList<String> connectedNodes = new ArrayList<>();
+        connectedNodes.add(nodeName);
         while (true) {
                     nodeWriter.write("START 1 " + nodeName + "\n");
                     nodeWriter.flush();
@@ -323,11 +325,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         System.out.println("this is:" + distance1);
                         System.out.println("this is:" + distance2);
 
-                        if(distance2<=distance1){
-                            return null;
-                        }
-
-                        if(Objects.equals(oldNode.nodeName, minNode.nodeName)){
+                        if(connectedNodes.contains(minNode.nodeName)){
                             return null;
                         }
 
@@ -337,6 +335,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         nodeWriter = new OutputStreamWriter(nodeSocket.getOutputStream());
                         nodeReader = new BufferedReader(new InputStreamReader(nodeSocket.getInputStream()));
 
+                        connectedNodes.add(minNode.nodeName);
 
                     }
         }
