@@ -323,7 +323,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         System.out.println("this is:" + distance1);
                         System.out.println("this is:" + distance2);
 
-                        if(distance2<=distance1){
+                        if(distance2>=distance1){
                             return null;
                         }
 
