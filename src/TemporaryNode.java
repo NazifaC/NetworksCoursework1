@@ -87,7 +87,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
         writer.flush();
 
         String response = reader.readLine();
-        System.out.println("Response: " + response);
+//        System.out.println("Response: " + response);
 
         if (response.startsWith("SUCCESS")) {
             return true;
@@ -135,7 +135,7 @@ public class TemporaryNode implements TemporaryNodeInterface {
                 System.out.print(REQ);
 
                 String response = nodeReader.readLine();
-                System.out.println("Response from 1" + nodeName + ": " + response);
+                System.out.println("Response from" + nodeName + ": " + response);
 
                 if (response.startsWith("SUCCESS")) {
                     return true;
@@ -161,17 +161,16 @@ public class TemporaryNode implements TemporaryNodeInterface {
                         }
                     }
 
-                    System.out.println("l: "+oldNode.nodeName);
-                    System.out.println("m: "+minNode.nodeName);
+                    System.out.println(oldNode.nodeName);
+                    System.out.println(minNode.nodeName);
 
-                    System.out.println("MIN: " + minNode.nodeName);
+                    System.out.println(minNode.nodeName);
 
                     byte[] h1 = HashID.computeHashID(oldNode.nodeName+ "\n");
                     byte[] h2 = HashID.computeHashID(minNode.nodeName+ "\n");
                     int distance1 = hashDistance(hash, h1);
                     int distance2 = hashDistance(hash, h2);
-                    System.out.println("this is:" + distance1);
-                    System.out.println("this is:" + distance2);
+
 
                     if(connectedNodes.contains(minNode.nodeName)){
                         return false;
@@ -353,17 +352,15 @@ public class TemporaryNode implements TemporaryNodeInterface {
                             }
                         }
 
-                        System.out.println("l: "+oldNode.nodeName);
-                        System.out.println("m: "+minNode.nodeName);
+                        System.out.println(oldNode.nodeName);
+                        System.out.println(minNode.nodeName);
 
-                        System.out.println("MIN: " + minNode.nodeName);
+                        System.out.println(minNode.nodeName);
 
                         byte[] h1 = HashID.computeHashID(oldNode.nodeName+ "\n");
                         byte[] h2 = HashID.computeHashID(minNode.nodeName+ "\n");
                         int distance1 = hashDistance(hash, h1);
                         int distance2 = hashDistance(hash, h2);
-                        System.out.println("this is:" + distance1);
-                        System.out.println("this is:" + distance2);
 
                         if(connectedNodes.contains(minNode.nodeName)){
                             return null;
@@ -399,17 +396,17 @@ public class TemporaryNode implements TemporaryNodeInterface {
         TemporaryNode node = new TemporaryNode();
         if (node.start("nazifa.chowdhury@city.ac.uk:YourNodeName", "127.0.0.1:1400")) {
             System.out.println("Connected to the network.");
-            boolean storeSuccess = node.store("Welcome", "Hello\nWorld!");
+            boolean storeSuccess = node.store("Welcome\n", "Hello\nWorld!\n");
             System.out.println((storeSuccess ? "SUCCESS" : "FAILED") + "\n");
 
             String value = node.get("Welcome\n");
             System.out.println(value);
 
             boolean echoSuccess = node.sendEchoRequest();
-            System.out.println(echoSuccess ? "ECHO successful" : "ECHO failed");
+//            System.out.println(echoSuccess);
 
             boolean notifySuccess = node.notifyOtherNode("testNode@example.com:NodeName", "127.0.0.1:1400");
-            System.out.println(notifySuccess);
+//            System.out.println(notifySuccess);
 
             String hashID = "0f003b106b2ce5e1f95df39fffa34c2341f2141383ca46709269b13b1e6b4832";
 

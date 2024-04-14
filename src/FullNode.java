@@ -76,7 +76,7 @@ public class FullNode implements FullNodeInterface {
             int highestSupportedProtocolVersion = 1;
 
             while ((line = reader.readLine()) != null) {
-                System.out.println("Request: " + line);
+                System.out.println(line);
                 String[] parts = line.split(" ");
                 switch (parts[0]) {
                     case "START":
@@ -101,6 +101,9 @@ public class FullNode implements FullNodeInterface {
                         writer.flush();
                         break;
                     case "END":
+                        writer.write("END INVALID REQUEST\n");
+                        writer.flush();
+                        System.out.println("COMMUNICATION ENDED");
                         clientSocket.close();
                         break;
                 }
@@ -162,7 +165,7 @@ public class FullNode implements FullNodeInterface {
             System.out.println(currentLine);
         }
         String value = valueBuilder.toString();
-        System.out.println(nodeIsNearby(hashedKey));
+//        System.out.println(nodeIsNearby(hashedKey));
         if (nodeIsNearby(hashedKey)){
             keyValueStore.put(hashedKey, value);
             writer.write("SUCCESS\n");
@@ -187,12 +190,12 @@ public class FullNode implements FullNodeInterface {
         byte[] keyHash = hexStringToByteArray(hashedKey);
         int distance = hashDistance(currentHash, keyHash);
 
-        System.out.println(distance);
+//        System.out.println(distance);
         ArrayList<NodeInfo> nearest3 = new ArrayList<>();
-        System.out.println("OI: "+networkMap.get(0));
+//        System.out.println(networkMap.get(0));
         for(int i = distance; i >= 0 && nearest3.size() < 3; i--){
             ArrayList<NodeInfo> c = networkMap.get(i);
-            System.out.println("C"+i+": " + c);
+//            System.out.println("C"+i+": " + c);
             if(c == null){
                 continue;
             }
@@ -205,7 +208,7 @@ public class FullNode implements FullNodeInterface {
             }
         }
 
-        System.out.println(nearest3);
+//        System.out.println(nearest3);
         for (NodeInfo n: nearest3) {
             if(n.nodeName.equals(name)){
                 return true;
@@ -221,7 +224,7 @@ public class FullNode implements FullNodeInterface {
 
         if (nodeName != null && nodeAddress != null) {
             updateNetworkMap(nodeName, nodeAddress);
-            System.out.println("Node notified: " + nodeName + " at " + nodeAddress);
+//            System.out.println("Node notified: " + nodeName + " at " + nodeAddress);
 
 
             writer.write("NOTIFIED\n");
@@ -307,7 +310,7 @@ public class FullNode implements FullNodeInterface {
         if (networkMap.size() == 3) {
             networkMap.get(distance).remove(0);
         }
-        System.out.println("Added node: " + nodeName + " at " + nodeAddress);
+//        System.out.println("Added node: " + nodeName + " at " + nodeAddress);
 
         networkMap.get(distance).add(new NodeInfo(nodeName, nodeAddress));
     }
